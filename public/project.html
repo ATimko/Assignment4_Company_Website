@@ -1,0 +1,143 @@
+<!-- Ashley Timko || public/project.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Details</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/flatly/bootstrap.min.css" />
+    <style>
+        .content-section {
+            padding: 2rem 0;
+        }
+
+        .feature-box {
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="fas fa-database"></i> TCSS 445 | assign4</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="employee.html">Employee</a></li>
+                    <li class="nav-item"><a class="nav-link" href="department.html">Department</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="project.html">Project</a></li>
+                    <li class="nav-item"><a class="nav-link" href="worksOn.html">Works On</a></li>
+                </ul>
+                <form class="d-flex">
+                    <input class="form-control me-sm-2" type="search" placeholder="Search" />
+                    <button class="btn btn-outline-light my-2 my-sm-0" type="submit">Search</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="content-section">
+        <div class="container">
+            <div class="feature-box">
+                <h2>Project Details</h2>
+
+                <div class="mb-3">
+                    <label for="projectDropdown" class="form-label">Select a Project:</label>
+                    <select id="projectDropdown" class="form-control">
+                        <option value="">Select an project</option>
+                    </select>
+                </div>
+
+                <!-- Results Table -->
+                <div class="mt-4" id="resultSection" style="display: none;">
+                    <h3>Project Information</h3>
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Location</th>
+                                <th>Project Number</th>
+                                <th>Department</th>
+                                <th>Manager</th>
+                                <th>Manager Start Date</th>
+                                <th>Assigned Employees</th>
+                                <th>Total Hours</th>
+                                <th>Allocation Status</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Font Awesome and Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const dropdown = document.getElementById('projectDropdown');
+            const resultSection = document.getElementById('resultSection');
+            const resultTableBody = document.getElementById('resultTableBody');
+
+            // Fetch project list for the dropdown menu
+            try {
+                const response = await fetch('/project');
+                const projects = await response.json();
+
+                // Populate the dropdown with project names
+                projects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project.ProjectNumber;
+                    option.textContent = `${project.ProjectName} (#${project.ProjectNumber})`;
+                    option.dataset.details = JSON.stringify(project); // Store all details in data attribute
+                    dropdown.appendChild(option);
+                });
+
+                // Automatically fetch and display project details when a name is selected
+                dropdown.addEventListener('change', event => {
+                    const selectedOption = event.target.selectedOptions[0];
+                    if (!selectedOption || !selectedOption.dataset.details) {
+                        resultSection.style.display = 'none';
+                        return;
+                    }
+
+                    // Clear previous results
+                    const data = JSON.parse(selectedOption.dataset.details);
+                    // Populate the table with project details
+                    resultTableBody.innerHTML = `
+            <tr>
+              <td>${data.ProjectName}</td>
+              <td>${data.Location}</td>
+              <td>${data.ProjectNumber}</td>
+              <td>${data.DepartmentName}</td>
+              <td>${data.ManagerFirstName} ${data.ManagerLastName}</td>
+              <td>${new Date(data.ManagerStartDate).toLocaleDateString()}</td>
+              <td>${data.AssignedEmployees}</td>
+              <td>${data.TotalHours || 0}</td>
+              <td>${data.AllocationStatus}</td>
+              <td>${data.Status}</td>
+            </tr>
+          `;
+                    resultSection.style.display = 'block';
+                });
+
+            } catch (error) {
+                console.error('Error fetching project data:', error);
+            }
+        });
+    </script>
+</body>
+</html>
